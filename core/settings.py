@@ -114,7 +114,7 @@ DATABASES = {
         # Render will use the environment variable (Internal URL). Your laptop will use the fallback (External URL).
         os.environ.get('DATABASE_URL', LOCAL_EXTERNAL_URL),
         conn_max_age=600,
-        ssl_require=not os.environ.get('RENDER_EXTERNAL_HOSTNAME'), # Requires SSL locally, but not on Render
+        ssl_require=not os.environ.get('RENDER'), # 'RENDER' is present during both build and runtime
     )
 }
 
