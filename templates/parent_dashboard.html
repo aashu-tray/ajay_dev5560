@@ -1,0 +1,832 @@
+{% load humanize l10n %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PodarGuard Parent Dashboard</title>
+    <meta name="theme-color" content="#1769e0" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="PodarGuard" />
+    <link rel="manifest" href="{% url 'manifest' %}" />
+    <link rel="icon" href="/static/pwa/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/static/pwa/icon.svg" />
+
+    <!-- Leaflet CSS for Free OpenStreetMap -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --text: #172033;
+        --muted: #677084;
+        --line: #d9deea;
+        --primary: #1769e0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        overflow-x: hidden;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+      }
+
+      header,
+      main {
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        padding-inline: 16px;
+      }
+
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        padding: 28px 0 18px;
+      }
+
+      .header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+
+      a {
+        color: var(--primary);
+        font-weight: 700;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+
+      form,
+      p,
+      li,
+      div {
+        min-width: 0;
+      }
+
+      button {
+        max-width: 100%;
+        min-height: 40px;
+        border: 0;
+        border-radius: 6px;
+        padding: 0 14px;
+        font: inherit;
+        font-weight: 700;
+        color: #fff;
+        background: var(--primary);
+        cursor: pointer;
+        overflow-wrap: anywhere;
+      }
+
+      input {
+        min-width: 0;
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 10px;
+        font: inherit;
+        color: var(--text);
+      }
+
+      input:focus {
+        outline: 3px solid rgba(23, 105, 224, 0.18);
+        border-color: var(--primary);
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+        gap: 16px;
+        padding-bottom: 32px;
+      }
+
+      section {
+        min-width: 0;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 20px;
+      }
+
+      h2 {
+        margin-bottom: 14px;
+        font-size: 18px;
+      }
+
+      .muted {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .code {
+        display: inline-block;
+        max-width: 100%;
+        margin: 8px 0;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: #f9fbff;
+        overflow-wrap: anywhere;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      .keyword-form {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .suggestions {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .suggestion-title {
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .chip-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chip-form {
+        margin: 0;
+      }
+
+      .chip-button {
+        min-height: 32px;
+        padding: 0 10px;
+        color: var(--text);
+        background: #f9fbff;
+        border: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      .chip-button:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      .keyword-list {
+        padding-left: 0;
+        list-style: none;
+      }
+
+      .keyword-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        min-height: 42px;
+        border-top: 1px solid var(--line);
+      }
+
+      .keyword-list span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .delete-button {
+        min-height: 32px;
+        color: #b42318;
+        background: transparent;
+        border: 1px solid rgba(180, 35, 24, 0.35);
+      }
+
+      .wide {
+        grid-column: 1 / -1;
+      }
+
+      #map {
+        width: 100%;
+        min-height: 320px;
+        aspect-ratio: 16 / 9;
+        margin-bottom: 12px;
+        background: #eef1f6;
+        border-radius: 6px;
+        z-index: 1;
+      }
+
+      .map-error {
+        display: grid;
+        place-items: center;
+        height: 100%;
+        min-height: inherit;
+        padding: 16px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .visit-list {
+        padding-left: 0;
+        list-style: none;
+      }
+
+      .visit-list li {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px 16px;
+        align-items: start;
+        padding: 12px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .visit-url {
+        display: inline-block;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .visit-list .muted {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .leaflet-container {
+        max-width: 100%;
+      }
+
+      .leaflet-control-attribution {
+        max-width: calc(100vw - 40px);
+        white-space: normal;
+      }
+
+      .badge {
+        align-self: start;
+        padding: 4px 8px;
+        border-radius: 999px;
+        color: #b42318;
+        background: #fff4f2;
+        font-size: 12px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+        text-align: center;
+      }
+
+      .install-button {
+        display: none;
+      }
+
+      .install-button.is-visible {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 640px) {
+        header,
+        main {
+          padding-inline: 10px;
+        }
+
+        header {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 10px;
+          padding: 20px 0 14px;
+        }
+
+        header a {
+          align-self: flex-start;
+        }
+
+        .header-actions {
+          width: 100%;
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        section {
+          padding: 14px;
+        }
+
+        #map {
+          min-height: 220px;
+          aspect-ratio: 4 / 3;
+        }
+
+        .keyword-form {
+          flex-direction: column;
+        }
+
+        button {
+          min-height: 44px;
+          white-space: normal;
+        }
+
+        .keyword-form button,
+        .keyword-list button {
+          width: 100%;
+        }
+
+        .keyword-list li {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 8px;
+          padding: 10px 0;
+        }
+
+        .chip-button {
+          width: 100%;
+          min-height: 36px;
+        }
+
+        .chip-form {
+          flex: 1 1 calc(50% - 8px);
+        }
+
+        .visit-list li {
+          grid-template-columns: 1fr;
+          gap: 8px;
+          padding: 14px 0;
+        }
+
+        .badge {
+          width: 100%;
+          justify-self: start;
+          border-radius: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Parent Dashboard</h1>
+        <p class="muted">PodarGuard controls and device status.</p>
+      </div>
+      <div class="header-actions">
+        <button class="install-button" id="installAppButton" type="button">
+          Install App
+        </button>
+        <a href="{% url 'logout' %}">Log out</a>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <h2>Pair Child Device</h2>
+        <p class="muted">Enter this code in the child app or extension.</p>
+        <p class="code">{{ pairing_code.code }}</p>
+        <p class="muted">Expires {{ pairing_code.expires_at }}</p>
+        <form method="post" action="/api/dashboard/pairing-code/regenerate/">
+          {% csrf_token %}
+          <button type="submit">Generate New Code</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Connected Devices</h2>
+        {% if devices %}
+        <ul>
+          {% for device in devices %}
+          <li>{{ device.name|default:device.device_identifier }}</li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">No child devices have been paired yet.</p>
+        {% endif %}
+      </section>
+
+      <section class="wide">
+        <h2>Latest Device Location</h2>
+        {% if location %}
+        <div
+          id="map"
+          data-lat="{{ location.latitude|unlocalize }}"
+          data-lng="{{ location.longitude|unlocalize }}"
+        >
+          <div class="map-error">Loading map...</div>
+        </div>
+        <p class="muted">
+          Last seen {{ location.timestamp|timesince }} ago. Coordinates: {{
+          location.latitude|floatformat:6|unlocalize }}, {{
+          location.longitude|floatformat:6|unlocalize }}.
+          <a
+            href="https://www.google.com/maps/search/?api=1&query={{ location.latitude|unlocalize }},{{ location.longitude|unlocalize }}"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Open in Google Maps for directions</a
+          >.
+        </p>
+        {% else %}
+        <p class="muted">
+          No device location has been received yet. When a device is paired and
+          online, its last known location will appear here.
+        </p>
+        {% endif %}
+      </section>
+
+      <section class="wide">
+        <h2>Blocked Keywords</h2>
+        <form
+          class="keyword-form"
+          method="post"
+          action="{% url 'add_blocked_keyword' %}"
+        >
+          {% csrf_token %}
+          <input
+            type="text"
+            name="keyword"
+            maxlength="100"
+            placeholder="Type a keyword or site name"
+            required
+          />
+          <button type="submit">Add</button>
+        </form>
+
+        <div class="suggestions">
+          <div>
+            <p class="suggestion-title">Adult Content</p>
+            <div class="chip-grid">
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="adult"
+                /><button class="chip-button" type="submit">adult</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="porn"
+                /><button class="chip-button" type="submit">porn</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="xxx"
+                /><button class="chip-button" type="submit">xxx</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="dating"
+                /><button class="chip-button" type="submit">dating</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="18+"
+                /><button class="chip-button" type="submit">18+</button>
+              </form>
+            </div>
+          </div>
+
+          <div>
+            <p class="suggestion-title">Games</p>
+            <div class="chip-grid">
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="roblox"
+                /><button class="chip-button" type="submit">roblox</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="minecraft"
+                /><button class="chip-button" type="submit">minecraft</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="fortnite"
+                /><button class="chip-button" type="submit">fortnite</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="free fire"
+                /><button class="chip-button" type="submit">free fire</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="pubg"
+                /><button class="chip-button" type="submit">pubg</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="poki"
+                /><button class="chip-button" type="submit">poki</button>
+              </form>
+            </div>
+          </div>
+
+          <div>
+            <p class="suggestion-title">Shopping</p>
+            <div class="chip-grid">
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="amazon"
+                /><button class="chip-button" type="submit">amazon</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="flipkart"
+                /><button class="chip-button" type="submit">flipkart</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="myntra"
+                /><button class="chip-button" type="submit">myntra</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="meesho"
+                /><button class="chip-button" type="submit">meesho</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="ebay"
+                /><button class="chip-button" type="submit">ebay</button>
+              </form>
+              <form
+                class="chip-form"
+                method="post"
+                action="{% url 'add_blocked_keyword' %}"
+              >
+                {% csrf_token %}<input
+                  type="hidden"
+                  name="keyword"
+                  value="temu"
+                /><button class="chip-button" type="submit">temu</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {% if keywords %}
+        <ul class="keyword-list">
+          {% for item in keywords %}
+          <li>
+            <span>{{ item.keyword }}</span>
+            <form
+              method="post"
+              action="{% url 'delete_blocked_keyword' item.id %}"
+            >
+              {% csrf_token %}
+              <button class="delete-button" type="submit">Delete</button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">No custom keywords have been added yet.</p>
+        {% endif %}
+      </section>
+
+      <section class="wide">
+        <h2>Last 7 Days Site Activity</h2>
+        {% if recent_visits %}
+        <ul class="visit-list">
+          {% for visit in recent_visits %}
+          <li>
+            <div>
+              <a
+                class="visit-url"
+                href="{{ visit.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ visit.title|default:visit.domain|default:visit.url }}
+              </a>
+              <p class="muted">{{ visit.url }}</p>
+              <p class="muted">
+                {{ visit.device.name|default:visit.device.device_identifier }} -
+                {{ visit.visited_at }}
+              </p>
+            </div>
+            {% if visit.matched_keyword %}
+            <span class="badge">Blocked: {{ visit.matched_keyword }}</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted">
+          No site visits have been reported in the last 7 days.
+        </p>
+        {% endif %}
+      </section>
+    </main>
+
+    <!-- Leaflet JS for Free OpenStreetMap -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      (function () {
+        var installPromptEvent;
+        var installButton = document.getElementById('installAppButton');
+
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', function () {
+            navigator.serviceWorker.register("{% url 'service_worker' %}");
+          });
+        }
+
+        window.addEventListener('beforeinstallprompt', function (event) {
+          event.preventDefault();
+          installPromptEvent = event;
+          installButton.classList.add('is-visible');
+        });
+
+        installButton.addEventListener('click', function () {
+          if (!installPromptEvent) {
+            return;
+          }
+
+          installPromptEvent.prompt();
+          installPromptEvent.userChoice.finally(function () {
+            installPromptEvent = null;
+            installButton.classList.remove('is-visible');
+          });
+        });
+
+        window.addEventListener('appinstalled', function () {
+          installPromptEvent = null;
+          installButton.classList.remove('is-visible');
+        });
+      })();
+
+      {% if location %}
+      (function () {
+        var mapElement = document.getElementById('map');
+        var lat = Number(mapElement.dataset.lat);
+        var lng = Number(mapElement.dataset.lng);
+
+        function showMapError(message) {
+          mapElement.innerHTML = '<div class="map-error">' + message + '</div>';
+        }
+
+        if (!window.L) {
+          showMapError('Map could not load. Check your internet connection and use the Google Maps link below.');
+          return;
+        }
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          showMapError('This location is not valid yet.');
+          return;
+        }
+
+        mapElement.innerHTML = '';
+
+        var map = L.map(mapElement).setView([lat, lng], 15);
+
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map).bindPopup('Last known location.').openPopup();
+      })();
+      {% endif %}
+    </script>
+  </body>
+</html>

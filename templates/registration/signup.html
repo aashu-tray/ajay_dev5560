@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create PodarGuard Account</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f7fb;
+            --panel: #ffffff;
+            --text: #172033;
+            --muted: #677084;
+            --line: #d9deea;
+            --primary: #1769e0;
+            --primary-dark: #0f56bd;
+            --danger: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            width: min(100%, 440px);
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 28px;
+            box-shadow: 0 18px 45px rgba(23, 32, 51, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 28px;
+            line-height: 1.2;
+        }
+
+        p {
+            margin: 0 0 22px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 7px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font: inherit;
+            color: var(--text);
+            background: #fff;
+        }
+
+        input:focus {
+            outline: 3px solid rgba(23, 105, 224, 0.18);
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            min-height: 46px;
+            margin-top: 22px;
+            border: 0;
+            border-radius: 6px;
+            font: inherit;
+            font-weight: 700;
+            color: #fff;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+        }
+
+        a {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .errorlist {
+            margin: 8px 0 0;
+            padding-left: 18px;
+            color: var(--danger);
+        }
+
+        .helptext {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .footer {
+            margin: 18px 0 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Create Account</h1>
+    <p>Create a parent account to manage devices and blocked keywords.</p>
+
+    <form method="post" action="{% url 'signup' %}">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+        {% if form.username.help_text %}
+            <span class="helptext">{{ form.username.help_text }}</span>
+        {% endif %}
+
+        <label for="{{ form.password1.id_for_label }}">Password</label>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+        {% if form.password1.help_text %}
+            <span class="helptext">{{ form.password1.help_text }}</span>
+        {% endif %}
+
+        <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+        {% if form.password2.help_text %}
+            <span class="helptext">{{ form.password2.help_text }}</span>
+        {% endif %}
+
+        <button type="submit">Create account</button>
+    </form>
+
+    <p class="footer">Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+</main>
+</body>
+</html>

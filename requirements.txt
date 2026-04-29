@@ -1,0 +1,9 @@
+Django==6.0.4
+dj-database-url==3.0.1
+django-cors-headers==4.9.0
+djangorestframework==3.17.1
+fuzzywuzzy==0.18.0
+gunicorn==23.0.0
+psycopg[binary]==3.3.2
+python-Levenshtein==0.27.3
+whitenoise==6.11.0
