@@ -29,6 +29,7 @@ SECRET_KEY = os.environ.get(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+IS_RENDER = os.environ.get('RENDER') == 'true' or bool(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -120,9 +121,9 @@ if DATABASE_URL:
         conn_max_age=600,
         ssl_require=not DEBUG,
     )
-elif not DEBUG:
+elif IS_RENDER or not DEBUG:
     raise RuntimeError(
-        'DATABASE_URL is required when DEBUG=False. Add your Render PostgreSQL '
+        'DATABASE_URL is required on Render or when DEBUG=False. Add your Render PostgreSQL '
         'Internal Database URL to the web service environment variables.'
     )
 
