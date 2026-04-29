@@ -425,7 +425,19 @@
         <h2>Pair Child Device</h2>
         <p class="muted">Enter this code in the child app or extension.</p>
         <p class="code">{{ pairing_code.code }}</p>
+        {% if pairing_code_status == "used" %}
+        <p class="muted">
+          This code was already used. Click Generate New Code to pair another
+          device.
+        </p>
+        {% elif pairing_code_status == "expired" %}
+        <p class="muted">
+          This code expired {{ pairing_code.expires_at|timesince }} ago. Click
+          Generate New Code to pair a device.
+        </p>
+        {% else %}
         <p class="muted">Expires {{ pairing_code.expires_at }}</p>
+        {% endif %}
         <form method="post" action="/api/dashboard/pairing-code/regenerate/">
           {% csrf_token %}
           <button type="submit">Generate New Code</button>

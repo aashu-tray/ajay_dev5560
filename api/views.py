@@ -30,17 +30,13 @@ def generate_pairing_code():
             return code
 
 
-def get_active_pairing_code(parent):
-    now = timezone.now()
-    pairing_code = PairingCode.objects.filter(
-        parent=parent,
-        used_at__isnull=True,
-        expires_at__gt=now,
-    ).first()
+def get_dashboard_pairing_code(parent):
+    pairing_code = PairingCode.objects.filter(parent=parent).first()
 
     if pairing_code:
         return pairing_code
 
+    now = timezone.now()
     return PairingCode.objects.create(
         parent=parent,
         code=generate_pairing_code(),
@@ -256,7 +252,16 @@ def report_site_visit(request):
 
 @login_required
 def dashboard_view(request):
-    pairing_code = get_active_pairing_code(request.user)
+    pairing_code = get_dashboard_pairing_code(request.user)
+    now = timezone.now()
+
+    if pairing_code.used_at:
+        pairing_code_status = "used"
+    elif pairing_code.expires_at <= now:
+        pairing_code_status = "expired"
+    else:
+        pairing_code_status = "active"
+
     devices = ChildDevice.objects.filter(parent=request.user)
     latest_pos = DeviceLocation.objects.filter(device__parent=request.user).order_by('-timestamp').first()
     seven_days_ago = timezone.now() - timezone.timedelta(days=7)
@@ -272,6 +277,7 @@ def dashboard_view(request):
         'keywords': blocked_list,
         'recent_visits': recent_visits,
         'pairing_code': pairing_code,
+        'pairing_code_status': pairing_code_status,
         'devices': devices,
     })
 
