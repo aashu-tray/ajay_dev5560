@@ -1,17 +1,15 @@
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.conf import settings
-from django.http import FileResponse, HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import redirect, render
 
 
 def home(request):
-    return JsonResponse(
-        {
-            "message": "PodarGuard backend is running.",
-            "available_endpoints": ["/api/analyze/"],
-        }
-    )
+    if request.user.is_authenticated:
+        return redirect("dashboard_view")
+
+    return redirect("login")
 
 
 def favicon(request):
