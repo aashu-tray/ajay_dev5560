@@ -113,6 +113,10 @@ DATABASES = {
 }
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if RENDER_EXTERNAL_HOSTNAME and not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is missing on Render!")
+
 if DATABASE_URL:
     import dj_database_url
 
