@@ -32,7 +32,7 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+    for host in os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,.onrender.com').split(',')
     if host.strip()
 ]
 
@@ -77,7 +77,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'core.urls'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
@@ -106,18 +106,20 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# Paste your EXTERNAL URL here so your local laptop can connect to the database
-LOCAL_EXTERNAL_URL = 'postgresql://ajay_dev5560_user:5lS7gaihFjeiRngUj6DhMKnSCdkrHcCc@dpg-d7otcjmgvqtc73eqnalg-a.oregon-postgres.render.com/ajay_dev5560'
-
 DATABASES = {
-    'default': dj_database_url.parse(
-        # Render will use the environment variable (Internal URL). Your laptop will use the fallback (External URL).
-        os.environ.get('DATABASE_URL', LOCAL_EXTERNAL_URL),
-        conn_max_age=600,
-        ssl_require=not os.environ.get('RENDER'), # 'RENDER' is present during both build and runtime
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
