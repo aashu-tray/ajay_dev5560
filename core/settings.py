@@ -120,6 +120,11 @@ if DATABASE_URL:
         conn_max_age=600,
         ssl_require=not DEBUG,
     )
+elif not DEBUG:
+    raise RuntimeError(
+        'DATABASE_URL is required when DEBUG=False. Add your Render PostgreSQL '
+        'Internal Database URL to the web service environment variables.'
+    )
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
