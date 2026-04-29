@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -105,26 +106,17 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# Paste your EXTERNAL URL here so your local laptop can connect to the database
+LOCAL_EXTERNAL_URL = 'postgresql://ajay_dev5560_user:5lS7gaihFjeiRngUj6DhMKnSCdkrHcCc@dpg-d7otcjmgvqtc73eqnalg-a.oregon-postgres.render.com/ajay_dev5560'
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
-if RENDER_EXTERNAL_HOSTNAME and not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is missing on Render!")
-
-if DATABASE_URL:
-    import dj_database_url
-
-    DATABASES['default'] = dj_database_url.parse(
-        DATABASE_URL,
+    'default': dj_database_url.parse(
+        # Render will use the environment variable (Internal URL). Your laptop will use the fallback (External URL).
+        os.environ.get('DATABASE_URL', LOCAL_EXTERNAL_URL),
         conn_max_age=600,
-        ssl_require=False,  # Render's internal network doesn't require SSL
+        ssl_require=not os.environ.get('RENDER_EXTERNAL_HOSTNAME'), # Requires SSL locally, but not on Render
     )
+}
 
 
 # Password validation
